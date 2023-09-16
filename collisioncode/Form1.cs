@@ -52,11 +52,6 @@ namespace collisioncode
         public Form1()
         {
             InitializeComponent();
-            for (int i = 0; i < 0; i++)
-            {
-                circle.Add(new Circle());
-            }
-            MakeCir();
             
         }
         private void UpdateTic(object sender, EventArgs e)
