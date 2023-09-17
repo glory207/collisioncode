@@ -48,6 +48,13 @@ namespace collisioncode
         Bitmap bmp;
         float mouseX, mouseY;
         float mouseDX, mouseDY;
+        bool mouseD;
+        bool mouserD;
+        bool keyfD;
+        bool inpU, inpD, inpL, inpR;
+        float temprX;
+        float temprY;
+        float screenscale;
         #endregion
         public Form1()
         {
@@ -64,7 +71,7 @@ namespace collisioncode
         {
             // float bounce = (6f*rng.NextSingle()/10f) -0.1f;
             
-            circle[i].vy += 0.9f;
+           // circle[i].vy += 0.5f;
            // circle[i].vx *= 0.99f;
            // circle[i].vy *= 0.99f;
             if (circle[i].vx < 0.1 && circle[i].vx > -0.1) { circle[i].vx = 0; }
@@ -78,21 +85,41 @@ namespace collisioncode
         }
         void drawCir(Graphics g,float x,float y,float r, Color c)
         {
-            g.FillEllipse(new SolidBrush(c), x - (r), y - (r), r * 2f, r * 2f);
-            g.DrawEllipse(new Pen(Color.Black,3), x - (r), y - (r), r * 2f, r * 2f);
+            g.FillEllipse(new SolidBrush(c),screenscale *( x - (r)),screenscale *( y - (r)),screenscale *( r * 2f),screenscale *( r * 2f));
+            g.DrawEllipse(new Pen(Color.Black, screenscale * 3),screenscale *( x - (r)), screenscale * ( y - (r)),screenscale *( r * 2f),screenscale *( r * 2f));
         }
         void drawObj(Graphics g, float x, float y, float sx, float sy, Color color)
         {
-            g.FillRectangle(new SolidBrush(color), x - (0.5f * sx), y - (0.5f * sy), sx, sy);
-            g.DrawRectangle(new Pen(Color.Black, 3), x - (0.5f * sx), y - (0.5f * sy), sx, sy);
+            g.FillRectangle(new SolidBrush(color), screenscale * (x - (0.5f * sx)), screenscale * (y - (0.5f * sy)), screenscale * sx, screenscale * sy);
+            g.DrawRectangle(new Pen(Color.Black, screenscale * 3), screenscale * ( x - (0.5f * sx)), screenscale * ( y - (0.5f * sy)), screenscale * sx, screenscale * sy);
+        }
+        void drawShp(Graphics g, PointF[] points1, Color color,int thick)
+        {
+            
+            for (int i = 0; i < points1.Length; i++)
+            {
+                points1[i].X *= screenscale;
+                points1[i].Y *= screenscale;
+            }
+            g.DrawPolygon(new Pen(color, screenscale * thick), points1);
         }
         void Gooo()
         {
             //test
-            bmp = new Bitmap(pictureBox1.Width, pictureBox1.Height);
-            Graphics g = Graphics.FromImage(bmp);
+            
+            if(pictureBox1.Width> pictureBox1.Height)
+            {
+                bmp = new Bitmap(pictureBox1.Height, pictureBox1.Height);
 
-            g.DrawRectangle(new Pen(Color.Black, 3), 0, 0, bmp.Width, bmp.Height);
+            }
+            else
+            {
+                bmp = new Bitmap(pictureBox1.Width, pictureBox1.Width);
+            }
+            Graphics g = Graphics.FromImage(bmp);
+            screenscale = bmp.Width / 1000f;
+            screenscale = bmp.Height / 1000f;
+            g.DrawRectangle(new Pen(Color.Black, 5), screenscale * 5, screenscale * 5, screenscale * 990, screenscale * 990);
             #region
             for (int i = 0; i < circle.Count; i++)
             {
@@ -107,25 +134,47 @@ namespace collisioncode
             {
                 #region
                 drawCir(g, circle[i].x, circle[i].y, circle[i].radi, circle[i].color);
-                float lnx = Math.Clamp((circle[i].vx * circle[i].radi * 0.1f), - circle[i].radi, circle[i].radi);
-                float lny = Math.Clamp((circle[i].vy * circle[i].radi * 0.1f), - circle[i].radi, circle[i].radi);
-                g.DrawLine(new Pen(Color.Black, 3), circle[i].x, circle[i].y, circle[i].x - lnx, circle[i].y - lny);
+                float lnx = Math.Clamp((circle[i].vx * circle[i].radi * 0.1f), - circle[i].radi, circle[i].radi)*3f;
+                float lny = Math.Clamp((circle[i].vy * circle[i].radi * 0.1f), - circle[i].radi, circle[i].radi)*3f;
+                //   g.DrawLine(new Pen(Color.Black, 10), circle[i].x, circle[i].y, circle[i].x - lnx, circle[i].y - lny);
+
+                drawShp(g,new PointF[] {new PointF(circle[i].x, circle[i].y), new PointF( circle[i].x - lnx, circle[i].y - lny) }, Color.Black,10);
                 #endregion
             }
             
 
-            drawCir(g, mouseX, mouseY, 5, Color.BlueViolet);
             for (int i = 0; i < block.Count; i++)
             {
                 
                 drawObj(g, block[i].x, block[i].y, block[i].sx, block[i].sy, block[i].color);
                 
             }
-            g.DrawLine(new Pen(Color.Black,3),mouseX,mouseY,mouseDX,mouseDY);
+            drawObj(g, player.x, player.y, player.sx, player.sy, player.color);
+
+            
+            if(mouserD || mouseD)
+            {
+                //  g.DrawLine(new Pen(Color.Black, 3), player.x, player.y - (player.sy / 2f), player.x - temprX, player.y - (player.sy / 2f) - temprY);
+                drawShp(g, new PointF[] { new PointF(player.x, player.y - (player.sy / 2f)), new PointF(player.x - temprX, player.y - (player.sy / 2f) - temprY) }, Color.Black, 3);
+
+                drawCir(g, player.x - temprX, player.y - (player.sy / 2f) - temprY, 5, Color.BlueViolet);
+            }
+            if(keyfD)
+            {
+                PointF[] points = new PointF[] { new PointF { X = mouseX, Y = mouseY }, new PointF { X = mouseX, Y = mouseDY }, new PointF { X = mouseDX, Y = mouseDY }, new PointF { X = mouseDX, Y = mouseY } };
+                //  g.DrawPolygon(new Pen(Color.Black, 3), points);
+                drawShp(g, points, Color.Black, 3);
+
+                drawCir(g, mouseDX, mouseDY, 5, Color.BlueViolet);
+                drawCir(g, mouseX, mouseY, 5, Color.BlueViolet);
+                drawCir(g, mouseX, mouseDY, 5, Color.BlueViolet);
+                drawCir(g, mouseDX, mouseY, 5, Color.BlueViolet);
+            }
+            drawCir(g, mouseDX, mouseDY, 5, Color.BlueViolet);
+
             #endregion
 
             MovePlayer();
-            drawObj(g, player.x, player.y, player.sx, player.sy, player.color);
 
             pictureBox1.Image = bmp;
         }
@@ -152,10 +201,10 @@ namespace collisioncode
             float bounce = 0f;
             #region
               
-            if (circle[i].y > bmp.Height - circle[i].radi)
+            if (circle[i].y > 1000 - circle[i].radi)
             {
                 circle[i].health--;
-                circle[i].y = bmp.Height - circle[i].radi;
+                circle[i].y = 1000 - circle[i].radi;
                 circle[i].vy *= -1 + bounce;
             }
             if (circle[i].y < circle[i].radi)
@@ -164,10 +213,10 @@ namespace collisioncode
                 circle[i].y = circle[i].radi;
                 circle[i].vy *= -1 + bounce;
             }
-            if (circle[i].x > bmp.Width - circle[i].radi)
+            if (circle[i].x > 1000 - circle[i].radi)
             {
                 circle[i].health--;
-                circle[i].x = bmp.Width - circle[i].radi;
+                circle[i].x = 1000 - circle[i].radi;
                 circle[i].vx *= -1 + bounce;
             }
             if (circle[i].x < 0 + circle[i].radi)
@@ -291,7 +340,7 @@ namespace collisioncode
             if (e.KeyCode == Keys.S) { inpD = true; }
             if (e.KeyCode == Keys.F)
             { 
-            mouserD = true;
+            keyfD = true;
             }
         }
         private void pictureBox1_MouseUp(object sender, MouseEventArgs e)
@@ -299,12 +348,12 @@ namespace collisioncode
             if (e.Button == MouseButtons.Left)
             {
                 Circle tempC = new Circle();
-                tempC.y = mouseY;
-                tempC.x = mouseX;
-                tempC.radi = 10;
+                tempC.y = player.y - (player.sy / 2f);
+                tempC.x = player.x;
+                tempC.radi = 15;
 
-                tempC.vy = (mouseY - mouseDY)/5f;
-                tempC.vx = (mouseX - mouseDX)/5f;
+                tempC.vy = temprY/5f ;
+                tempC.vx = temprX / 5f;
                 tempC.color = Color.Aquamarine;
                 tempC.health = 5;
                 circle.Add(tempC);
@@ -314,21 +363,16 @@ namespace collisioncode
             if (e.Button == MouseButtons.Right)
             {
                 
-                float power = 500;
-                float tempX = (mouseX - mouseDX);
-                tempX = Math.Clamp(tempX, -power, power) ;
-                float tempY = (mouseY - mouseDY);
-                tempY = Math.Clamp(tempY, -power, power) ;
-                player.vy = tempY / 10f;
-                player.vx = tempX / 10f;
+               
+               
+                player.vy = temprY / 10f;
+                player.vx = temprX / 10f;
 
                 mouserD = false;
             }
 
         }
-        bool mouseD;
-        bool mouserD;
-        bool inpU, inpD, inpL, inpR;
+        
         private void Form1_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.F) 
@@ -336,15 +380,15 @@ namespace collisioncode
                 Block tempC = new Block();
                 tempC.y = (mouseY + mouseDY) / 2f;
                 tempC.x = (mouseX + mouseDX) / 2f;
-                tempC.sx = MathF.Abs(mouseX - mouseDX);
+                tempC.sx = MathF.Abs(temprX);
                 if (tempC.sx < 10) { tempC.sx = 10; }
-                tempC.sy = MathF.Abs(mouseY - mouseDY);
+                tempC.sy = MathF.Abs(temprY);
                 if (tempC.sy < 10) { tempC.sy = 10; }
 
                 tempC.color = Color.Brown;
 
                 block.Add(tempC);
-                mouserD = false;
+                keyfD = false;
             }
             if (e.KeyCode == Keys.D) { inpR = false; }
             if (e.KeyCode == Keys.A) { inpL = false; }
@@ -353,14 +397,14 @@ namespace collisioncode
         }
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
         {
-            if (!mouserD && !mouseD ) 
+            if (!mouserD && !mouseD && !keyfD) 
             {
-                mouseX = e.X;
-                mouseY = e.Y;
+                mouseX = e.X / screenscale;
+                mouseY = e.Y / screenscale;
             }
             
-            mouseDX = e.X;
-            mouseDY = e.Y;
+            mouseDX =  e.X / screenscale;
+            mouseDY =  e.Y / screenscale;
             
             
         }
@@ -409,32 +453,41 @@ namespace collisioncode
             }
             player.vy += 0.7f;
 
-            if (mouseD )
-            {
-                mouseX = player.x;
-                mouseY = player.y - (player.sy/2f);
-            }
             
-
+            if(mouserD || mouseD || keyfD)
+            {
+                float power = 500;
+                temprX = (mouseX - mouseDX) * screenscale;
+                temprX = Math.Clamp(temprX, -power, power);
+                temprY = (mouseY - mouseDY) * screenscale;
+                temprY = Math.Clamp(temprY, -power, power);
+            }
+            else
+            {
+                temprX = 0;
+                temprY = 0;
+            }
+            label1.Text = temprX.ToString();
+            label2.Text = temprY.ToString();
             #region
-            if (player.y > bmp.Height + (player.sy/2f))
+            if (player.y > 1000 + (player.sy/2f))
             {
                 player.y = -(player.sy /2) +10;
                 //player.vy *= -1 + bounce;
             }
             if (player.y < -(player.sy / 2f))
             {
-                 player.y = bmp.Height + (player.sy/2f) - 10;
+                 player.y = 1000 + (player.sy/2f) - 10;
                // player.vy *= -1 + bounce;
             }
-            if (player.x > bmp.Width + (player.sx / 2f))
+            if (player.x > 1000 + (player.sx / 2f))
             {
                 player.x = -(player.sx / 2f) + 10;
               //  player.vx *= -1 + bounce;
             }
             if (player.x < - (player.sx / 2f))
             {
-                 player.x = bmp.Width + (player.sx / 2f) - 10;
+                 player.x = 1000 + (player.sx / 2f) - 10;
                // player.vx *= -1 + bounce;
             }
             #endregion
