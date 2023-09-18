@@ -49,7 +49,7 @@ namespace collisioncode
         public List<Block> block = new List<Block>();
        public List<Circle> circle = new List<Circle>();
         Random rng = new Random();
-        Bitmap bmp;
+        Bitmap bmp = new Bitmap(800, 800);
         float mouseX, mouseY;
         float mouseDX, mouseDY;
         bool mouseD;
@@ -64,7 +64,6 @@ namespace collisioncode
         float screenoffsetX = 0;
         float screenoffsetY = 0;
         #endregion
-        Bitmap tempBitmap;
 
         //============START=AND=LOGIC========
         #region
@@ -86,7 +85,7 @@ namespace collisioncode
         void Gooo()
         {
             //test
-            bmp = new Bitmap(1000, 1000);
+            
             screenscale = bmp.Height / 1000f;
 
             screenscalex = bmp.Width / 1000f;
