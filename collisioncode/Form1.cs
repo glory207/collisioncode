@@ -70,7 +70,7 @@ namespace collisioncode
         public Form1()
         {
             InitializeComponent();
-            Cursor.Hide();
+         //   Cursor.Hide();
            
             Block tempC = new Block();
             tempC.y = 900;
