@@ -45,7 +45,7 @@ namespace collisioncode
             public Color color { get; set; }
             public bool grounged { get; set; }
         }
-        public Player player = new Player() {x = 500,y = 200,sx = 40,sy = 120, color = Color.Yellow, grounged = false };
+        public Player player = new Player() {x = 500,y = 200,sx = 100,sy = 250, color = Color.Yellow, grounged = false };
         public List<Block> block = new List<Block>();
        public List<Circle> circle = new List<Circle>();
         Random rng = new Random();
@@ -61,6 +61,8 @@ namespace collisioncode
         float screenscale;
         float screenscalex;
         float screenscaley;
+        float screenzoom = 2500f;
+        float screenzoomV;
         float screenoffsetX = 0;
         float screenoffsetY = 0;
         #endregion
@@ -70,6 +72,7 @@ namespace collisioncode
         public Form1()
         {
             InitializeComponent();
+            this.pictureBox1.MouseWheel += MouseScrole;
          //   Cursor.Hide();
            
             Block tempC = new Block();
@@ -86,9 +89,9 @@ namespace collisioncode
         {
             //test
             
-            screenscale = bmp.Height / 1000f;
+            screenscale = bmp.Height / screenzoom;
 
-            screenscalex = bmp.Width / 1000f;
+            screenscalex = bmp.Width  / 1000f;
             screenscaley = bmp.Height / 1000f;
            
             Graphics g = Graphics.FromImage(bmp);
@@ -174,41 +177,37 @@ namespace collisioncode
             
             player.vx += player.mx;
             player.vy += player.my * 2;
+            player.vx = Math.Clamp(player.vx,-40, 40);
+            player.vy = Math.Clamp(player.vy,-40, 40);
             player.x += player.vx;
             player.y += player.vy;
             player.scrx = player.x + screenoffsetX;
             player.scry = player.y + screenoffsetY;
             //  screenoffsetX = (screenscalex -screenscaley) * 1000;
             
-          if(player.scrx < (500))
+          if(player.scrx < (screenzoom*0.5f))
           {
-             screenoffsetX += 0.05f * (( 500) - player.scrx);
+             screenoffsetX += 0.05f * ((screenzoom * 0.5f) - player.scrx);
           }
-          if(player.scrx > ( 500))
+          if(player.scrx > (screenzoom * 0.5f))
           {
-              screenoffsetX += 0.05f * (( 500) - player.scrx);
+              screenoffsetX += 0.05f * ((screenzoom * 0.5f) - player.scrx);
           } 
-          if(player.scry < (500))
+          if(player.scry < (screenzoom * 0.5f))
           {
-              screenoffsetY += 0.05f * (( 500) - player.scry);
+              screenoffsetY += 0.05f * ((screenzoom * 0.5f) - player.scry);
           }
-          if(player.scry > ( 500))
+          if(player.scry > (screenzoom * 0.5f))
           {
-              screenoffsetY += 0.05f * (( 500) - player.scry);
+              screenoffsetY += 0.05f * ((screenzoom * 0.5f) - player.scry);
           }
-            if (player.grounged)
+            // if (player.grounged)
             {
-                player.vx *= 0.95f;
+                player.vx *= 0.955f;
                 player.vy *= 0.99f;
 
             }
-            else
-            {
-                player.vx *= 0.92f;
-                player.vy *= 0.95f;
-
-            }
-            player.vy += 0.9f;
+            player.vy += 1f;
 
 
             label1.Text = screenscalex.ToString();
@@ -256,42 +255,45 @@ namespace collisioncode
                 float bounce = 0.8f;
 
 
-                if (((player.y + (player.sy / 2f) > block[t].y - (block[t].sy * 0.5f)) && ((player.y - (player.sy / 2f) < block[t].y + (block[t].sy * 0.5f)))) && ((player.x + (player.sx / 2f) > block[t].x - (block[t].sx * 0.5f)) && ((player.x - (player.sx / 2f) < block[t].x + (block[t].sx * 0.5f)))))
+                if (((player.y + (player.sy / 2f) >= block[t].y - (block[t].sy * 0.5f)) && ((player.y - (player.sy / 2f) <= block[t].y + (block[t].sy * 0.5f)))) && ((player.x + (player.sx / 2f) >= block[t].x - (block[t].sx * 0.5f)) && ((player.x - (player.sx / 2f) <= block[t].x + (block[t].sx * 0.5f)))))
                 {
-
-
-                    if (((player.x > block[t].x - (block[t].sx * 0.5f)) && ((player.x < block[t].x + (block[t].sx * 0.5f)))))
+                   
+                    float ydif = ((0.5f*player.sy) + (0.5f * block[t].sy)) - MathF.Abs (player.y - block[t].y);
+                    float xdif = ((0.5f * player.sx) + (0.5f * block[t].sx)) - MathF.Abs(player.x - block[t].x);
+                    
+                    
+                    if (ydif < xdif)
                     {
-                        if (player.y < block[t].y)
+
+                        if (player.y + (player.sy / 2f) < block[t].y)
                         {
                             player.vy *= -1 + bounce;
                             player.y = block[t].y - (block[t].sy * 0.5f) - (player.sy / 2f);
-
+                            
                         }
-                        else if (player.y > block[t].y)
+                        else if (player.y - (player.sy / 2f) > block[t].y)
                         {
                             player.vy *= -1 + bounce;
                             player.y = block[t].y + (block[t].sy * 0.5f) + (player.sy / 2f);
                         }
-
-
+                        
+                        
                     }
-                    if (((player.y > block[t].y - (block[t].sy * 0.5f)) && ((player.y < block[t].y + (block[t].sy * 0.5f)))))
-                    {
-                        if (player.x < block[t].x)
-                        {
-                            player.vx *= -1 + bounce;
-                            player.x = block[t].x - (block[t].sx * 0.5f) - (player.sx / 2f);
-
-                        }
-                        else if (player.x > block[t].x)
-                        {
-                            player.vx *= -1 + bounce;
-                            player.x = block[t].x + (block[t].sx * 0.5f) + (player.sx / 2f);
-                        }
-
-
-                    }
+                   else{
+                       if (player.x + (player.sx / 2f) < block[t].x)
+                       {
+                           player.vx *= -1 + bounce;
+                           player.x = block[t].x - (block[t].sx * 0.5f) - (player.sx / 2f);
+                 
+                       }
+                       else if (player.x - (player.sx / 2f) > block[t].x)
+                       {
+                           player.vx *= -1 + bounce;
+                           player.x = block[t].x + (block[t].sx * 0.5f) + (player.sx / 2f);
+                       }
+                 
+                 
+                   }
 
 
 
@@ -353,11 +355,12 @@ namespace collisioncode
 
                 if (((circle[i].y + circle[i].radi > block[t].y - (block[t].sy * 0.5f)) && ((circle[i].y - circle[i].radi < block[t].y + (block[t].sy * 0.5f)))) && ((circle[i].x + circle[i].radi > block[t].x - (block[t].sx * 0.5f)) && ((circle[i].x - circle[i].radi < block[t].x + (block[t].sx * 0.5f)))))
                 {
+                    float ydif = ((  circle[i].radi) + (0.5f * block[t].sy)) - MathF.Abs(circle[i].y - block[t].y);
+                    float xdif = ((  circle[i].radi) + (0.5f * block[t].sx)) - MathF.Abs(circle[i].x - block[t].x);
 
 
-
-
-                    if ((circle[i].y > block[t].y - (block[t].sy * 0.5f)) && (circle[i].y < block[t].y + (block[t].sy * 0.5f)))
+                    if (ydif > xdif)
+                      //  if ((circle[i].y > block[t].y - (block[t].sy * 0.5f)) && (circle[i].y < block[t].y + (block[t].sy * 0.5f)))
                     {
                         if (circle[i].x < block[t].x)
                         {
@@ -374,8 +377,7 @@ namespace collisioncode
                         }
 
 
-                    }
-                    if ((circle[i].x > block[t].x - (block[t].sx * 0.5f)) && (circle[i].x < block[t].x + (block[t].sx * 0.5f)))
+                    }else
                     {
                         if (circle[i].y < block[t].y)
                         {
@@ -454,7 +456,9 @@ namespace collisioncode
                mouserD = true;
 
             }
-
+            
+            
+               
 
         }
         private void pictureBox1_MouseUp(object sender, MouseEventArgs e)
@@ -466,8 +470,8 @@ namespace collisioncode
                 tempC.x = player.x;
                 tempC.radi = 25;
 
-                tempC.vy = temprY / 10f;
-                tempC.vx = temprX / 10f;
+                tempC.vy = temprY / 5f;
+                tempC.vx = temprX / 5f;
                 tempC.color = Color.Aquamarine;
                 tempC.health = 10;
                 circle.Add(tempC);
@@ -479,8 +483,8 @@ namespace collisioncode
 
 
 
-                player.vy = -temprY / 6f;
-                player.vx = -temprX / 6f;
+                player.vy = -temprY / 3f;
+                player.vx = -temprX / 3f;
 
                 mouserD = false;
             }
@@ -491,9 +495,15 @@ namespace collisioncode
             
 
         }
+        private void MouseScrole(object sender, MouseEventArgs e)
+        {
+            if (e.Delta > 0) { screenzoomV -= 10; }
+            if (e.Delta < 0) { screenzoomV += 10; }
+            
+        }
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            if ((e.KeyCode == Keys.Space || e.KeyCode == Keys.W) && player.grounged) { player.vy = -30; }
+            if ((e.KeyCode == Keys.Space || e.KeyCode == Keys.W) && player.grounged) { player.vy = -40; }
             if (e.KeyCode == Keys.E)
             {
                 circle.Clear();
@@ -518,7 +528,7 @@ namespace collisioncode
 
             if (e.KeyCode == Keys.D) { inpR = true; }
             if (e.KeyCode == Keys.A) { inpL = true; }
-           // if (e.KeyCode == Keys.W) { player.my = -1; }
+          //  if (e.KeyCode == Keys.W) { inpU = true; }
             if (e.KeyCode == Keys.S) { inpD = true; }
             if (e.KeyCode == Keys.F)
             { 
@@ -533,24 +543,38 @@ namespace collisioncode
                 tempC.y =  ((mouseY + mouseDY) / 2f ) - screenoffsetY;
                 tempC.x =  ((mouseX + mouseDX) / 2f ) - screenoffsetX;
                 tempC.sx = MathF.Abs(temprX );
-                if (tempC.sx < 10) { tempC.sx = 10; }
+                if (tempC.sx < 100) { tempC.sx = 100; }
                 tempC.sy = MathF.Abs( temprY );
-                if (tempC.sy < 10) { tempC.sy = 10; }
+                if (tempC.sy < 100) { tempC.sy = 100; }
 
                 tempC.color = Color.Brown;
+                #region
 
-                block.Add(tempC);
+                if (!(((player.y + (player.sy / 2f) >= tempC.y - (tempC.sy * 0.5f)) && ((player.y - (player.sy / 2f) <= tempC.y + (tempC.sy * 0.5f)))) && ((player.x + (player.sx / 2f) >= tempC.x - (tempC.sx * 0.5f)) && ((player.x - (player.sx / 2f) <= tempC.x + (tempC.sx * 0.5f))))))
+                {
+                    block.Add(tempC);
+
+                }
+
+                #endregion
+
+
                 keyfD = false;
             }
             if (e.KeyCode == Keys.D) { inpR = false; }
             if (e.KeyCode == Keys.A) { inpL = false; }
-         //   if (e.KeyCode == Keys.W) { player.my = 0; }
+          //  if (e.KeyCode == Keys.W) { inpU = false; }
             if (e.KeyCode == Keys.S) { inpD = false; }
         }
         private void Inputs()
         {
             var relativePoint = PointToClient(Cursor.Position);
-            
+            screenzoomV *= 0.9f;
+            screenzoom += screenzoomV;
+            screenzoom = Math.Clamp(screenzoom, 1000, 5000);
+
+            // screenzoom = Math.Clamp(screenzoom, 1500, 2000);
+
             if (!mouserD && !mouseD && !keyfD)
             {
                // mouseX = (relativePoint.X - screenoffsetX) / screenscale;
