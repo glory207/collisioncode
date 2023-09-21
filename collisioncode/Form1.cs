@@ -68,10 +68,11 @@ namespace collisioncode
         float screenoffsetX = 0;
         float screenoffsetY = 0;
         
-        float Rx = 0.2f;
-        float Ry = 0;
+        float Rx = 0.1f;
+        float Ry = -0.1f;
         float Rz = 0;
         float dis = 0;
+        Graphics g;
         #endregion
 
         //============START=AND=LOGIC========
@@ -101,7 +102,7 @@ namespace collisioncode
             screenscalex = bmp.Width  / 1000f;
             screenscaley = bmp.Height / 1000f;
            
-            Graphics g = Graphics.FromImage(bmp);
+            g = Graphics.FromImage(bmp);
             g.FillRectangle(new SolidBrush(Color.Gray), 0, 0, screenscalex * 1000, screenscaley * 1000);
             #region
             for (int i = 0; i < circle.Count; i++)
@@ -115,10 +116,9 @@ namespace collisioncode
             for (int i = 0; i < circle.Count; i++)
             {
                 #region
-                drawCir(g, circle[i].x, circle[i].y, circle[i].radi, circle[i].color);
-                // float lnx = Math.Clamp((circle[i].vx * circle[i].radi * 0.1f), - circle[i].radi, circle[i].radi)*3f;
-                // float lny = Math.Clamp((circle[i].vy * circle[i].radi * 0.1f), - circle[i].radi, circle[i].radi)*3f;
-                // drawShp(g,new PointF[] {new PointF(circle[i].x, circle[i].y), new PointF( circle[i].x - lnx, circle[i].y - lny) }, Color.Black,10);
+               // drawCir( circle[i].x, circle[i].y, circle[i].radi, circle[i].color);
+                SetVectors( Makepoint(circle[i].x, circle[i].y, circle[i].radi, circle[i].radi, circle[i].radi));
+
                 #endregion
             }
 
@@ -127,29 +127,45 @@ namespace collisioncode
             {
 
                // drawObj(g, block[i].x, block[i].y, block[i].sx, block[i].sy, block[i].color);
-                SetVectors(g, Makepoint(block[i].x, block[i].y, block[i].sx, block[i].sy, 250f));
+                SetVectors( Makepoint(block[i].x, block[i].y, block[i].sx, block[i].sy, player.sx + 50));
             }
             // drawObj(g, player.x, player.y, player.sx, player.sy, player.color);
-            SetVectors(g, Makepoint(player.x, player.y, player.sx, player.sy, 100f));
+            SetVectors( Makepoint(player.x, player.y, player.sx, player.sy, player.sx));
 
 
             if (mouserD || mouseD)
             {
-                drawShp(g, new PointF[] { new PointF(player.x, player.y - (player.sy / 2f)), new PointF((player.x - temprX), (player.y - (player.sy / 2f) - temprY)) }, Color.Black, 3);
+                // drawShp( new PointF[] { new PointF(player.x, player.y - (player.sy / 2f)), new PointF((player.x - temprX), (player.y - (player.sy / 2f) - temprY)) }, Color.Black, 3);
+                PointF[] points = new PointF[] { new PointF(player.x, player.y - (player.sy / 2f)), new PointF(player.x, player.y - (player.sy / 2f)), new PointF((player.x - temprX), (player.y - (player.sy / 2f) - temprY)), new PointF((player.x - temprX), (player.y - (player.sy / 2f) - temprY)) };
+                SetVectors( Makepoint2(points, 5,0));
 
-                drawCir(g, player.x - temprX, player.y - (player.sy / 2f) - temprY, 5, Color.BlueViolet);
+                drawCir( player.x - temprX, player.y - (player.sy / 2f) - temprY, 5, Color.BlueViolet);
             }
             if (keyfD)
             {
                 PointF[] points = new PointF[] { new PointF { X = mouseX - screenoffsetX, Y = mouseY - screenoffsetY }, new PointF { X = mouseX - screenoffsetX, Y = mouseDY - screenoffsetY }, new PointF { X = mouseDX - screenoffsetX, Y = mouseDY - screenoffsetY }, new PointF { X = mouseDX - screenoffsetX, Y = mouseY - screenoffsetY } };
-                drawShp(g, points, Color.Black, 3);
+                // drawShp( points, Color.Black, 3);
+                // SetVectors(g, Makepoint2(points,20,0));
+                SetVectors(Makepoint2(points, player.sx + 50, 0));
 
-                drawCir(g, mouseDX - screenoffsetX, mouseDY - screenoffsetY, 5, Color.BlueViolet);
-                drawCir(g, mouseX - screenoffsetX, mouseY - screenoffsetY, 5, Color.BlueViolet);
-                drawCir(g, mouseX - screenoffsetX, mouseDY - screenoffsetY, 5, Color.BlueViolet);
-                drawCir(g, mouseDX - screenoffsetX, mouseY - screenoffsetY, 5, Color.BlueViolet);
+
+                Block tempC = new Block();
+                    tempC.y = ((mouseY + mouseDY) / 2f) - screenoffsetY;
+                    tempC.x = ((mouseX + mouseDX) / 2f) - screenoffsetX;
+                    tempC.sx = MathF.Abs(temprX);
+                    if (tempC.sx < 100) { tempC.sx = 100; }
+                    tempC.sy = MathF.Abs(temprY);
+                    if (tempC.sy < 100) { tempC.sy = 100; }
+
+                  //  SetVectors(Makepoint(tempC.x, tempC.y, tempC.sx, tempC.sy, player.sx + 50));
+
+                
+                drawCir( mouseDX - screenoffsetX, mouseDY - screenoffsetY, 5, Color.BlueViolet);
+                drawCir( mouseX - screenoffsetX, mouseY - screenoffsetY, 5, Color.BlueViolet);
+                drawCir( mouseX - screenoffsetX, mouseDY - screenoffsetY, 5, Color.BlueViolet);
+                drawCir( mouseDX - screenoffsetX, mouseY - screenoffsetY, 5, Color.BlueViolet);
             }
-            drawCir(g, mouseDX - screenoffsetX, mouseDY - screenoffsetY, 5, Color.BlueViolet);
+            drawCir( mouseDX - screenoffsetX, mouseDY - screenoffsetY, 5, Color.BlueViolet);
 
             #endregion
 
@@ -192,22 +208,22 @@ namespace collisioncode
             player.scry = player.y + screenoffsetY;
             //  screenoffsetX = (screenscalex -screenscaley) * 1000;
             
-          if(player.scrx < (screenzoom*0.5f))
-          {
-             screenoffsetX += 0.05f * ((screenzoom * 0.5f) - player.scrx);
-          }
-          if(player.scrx > (screenzoom * 0.5f))
-          {
-              screenoffsetX += 0.05f * ((screenzoom * 0.5f) - player.scrx);
-          } 
-          if(player.scry < (screenzoom * 0.5f))
-          {
-              screenoffsetY += 0.05f * ((screenzoom * 0.5f) - player.scry);
-          }
-          if(player.scry > (screenzoom * 0.5f))
-          {
-              screenoffsetY += 0.05f * ((screenzoom * 0.5f) - player.scry);
-          }
+       //   if(player.scrx < (screenzoom*0.5f))
+       //   {
+       //      screenoffsetX += 0.05f * ((screenzoom * 0.5f) - player.scrx);
+       //   }
+       //   if(player.scrx > (screenzoom * 0.5f))
+       //   {
+       //       screenoffsetX += 0.05f * ((screenzoom * 0.5f) - player.scrx);
+       //   } 
+       //   if(player.scry < (screenzoom * 0.5f))
+       //   {
+       //       screenoffsetY += 0.05f * ((screenzoom * 0.5f) - player.scry);
+       //   }
+       //   if(player.scry > (screenzoom * 0.5f))
+       //   {
+       //       screenoffsetY += 0.05f * ((screenzoom * 0.5f) - player.scry);
+       //   }
             // if (player.grounged)
             {
                 player.vx *= 0.955f;
@@ -416,17 +432,17 @@ namespace collisioncode
 
         //===========DRAWING================
         #region
-        void drawCir(Graphics g,float x,float y,float r, Color c)
+        void drawCir(float x,float y,float r, Color c)
         {
             g.FillEllipse(new SolidBrush(c),screenscale *( x - (r)) +(screenoffsetX * screenscale),screenscale *( y - (r)) + (screenoffsetY * screenscale), screenscale *( r * 2f) , screenscale *( r * 2f));
             g.DrawEllipse(new Pen(Color.Black, screenscale * 3),screenscale *( x - (r)) + (screenoffsetX * screenscale),( screenscale * ( y - (r))) + (screenoffsetY * screenscale), screenscale *( r * 2f),screenscale *( r * 2f));
         }
-        void drawObj(Graphics g, float x, float y, float sx, float sy, Color color)
+        void drawObj( float x, float y, float sx, float sy, Color color)
         {
             g.FillRectangle(new SolidBrush(color), screenscale * (x - (0.5f * sx)) + (screenoffsetX * screenscale), (screenscale * (y - (0.5f * sy))) + (screenoffsetY * screenscale), screenscale * sx, screenscale * sy);
             g.DrawRectangle(new Pen(Color.Black, screenscale * 3), screenscale * ( x - (0.5f * sx)) + (screenoffsetX * screenscale),( screenscale * ( y - (0.5f * sy))) + (screenoffsetY * screenscale), screenscale * sx, screenscale * sy);
         }
-        void drawShp(Graphics g, PointF[] points1, Color color,int thick)
+        void drawShp(PointF[] points1, Color color,int thick)
         {
             
             for (int i = 0; i < points1.Length; i++)
@@ -461,15 +477,15 @@ namespace collisioncode
 
             Vector3[] madePointes = new Vector3[8]
             {
-                new Vector3(px - pw, py - ph,dis -depth),
-                new Vector3(px + pw, py - ph,dis -depth),
-                new Vector3(px + pw, py + ph,dis -depth),
-                new Vector3(px - pw, py + ph,dis -depth),
+                new Vector3(px - pw, py - ph,-depth),
+                new Vector3(px + pw, py - ph,-depth),
+                new Vector3(px + pw, py + ph,-depth),
+                new Vector3(px - pw, py + ph,-depth),
 
-                new Vector3(px - pw, py - ph,dis + depth),
-                new Vector3(px + pw, py - ph,dis + depth),
-                new Vector3(px + pw, py + ph,dis + depth),
-                new Vector3(px - pw, py + ph,dis + depth)
+                new Vector3(px - pw, py - ph, depth),
+                new Vector3(px + pw, py - ph, depth),
+                new Vector3(px + pw, py + ph, depth),
+                new Vector3(px - pw, py + ph, depth)
 
             };
 
@@ -485,7 +501,31 @@ namespace collisioncode
          new Vector3(-1.5f, 0.5f, 0.5f) };
             return madePointes;
         }
-        void SetVectors(Graphics g, Vector3[] points)
+        
+        Vector3[] Makepoint2(PointF[] Pp, float depth, float depth2)
+        {
+            for (int i = 0; i < Pp.Length; i++)
+            {
+                Pp[i].X *= 0.001f;
+                Pp[i].Y *= 0.001f;
+            }
+            depth *= 0.0005f;
+            depth2 *= 0.0005f;
+            int tmp = Pp.Length * 2;
+            List<Vector3> madePointes = new List<Vector3>();
+           
+            for (int i = 0; i < Pp.Length; i++)
+            {
+                madePointes.Add(new Vector3( Pp[i].X , Pp[i].Y, dis - depth));
+
+            }
+            for (int i = 0; i < Pp.Length; i++)
+            {
+                madePointes.Add(new Vector3( Pp[i].X , Pp[i].Y, dis + depth));
+            }
+            return madePointes.ToArray();
+        }
+        void SetVectors( Vector3[] points)
         {
             float[,] rotationZ = new float[,] {
              {MathF.Cos(Rz), -MathF.Sin(Rz), 0},
@@ -526,25 +566,20 @@ namespace collisioncode
                 //point(projected2d.x, projected2d.y);
             }
 
-          //  for (int i = 0; i < projected.Length; i++)
-          //  {
-          //      //   stroke(255);
-          //      //   strokeWeight(16);
-          //      //   noFill();
-          //      Vector3 v = projected[i];
-          //      // point(v.x, v.y);
-          //      g.FillEllipse(new SolidBrush(Color.RebeccaPurple), screenscale * (v.X + 500f), screenscale * (v.Y + 500f), 5, 5);
-          //  }
-
             // Connecting
-            for (int i = 0; i < 4; i++)
+            if (points.Length == 8) { 
+                for (int i = 0; i < 4; i++)
+                {
+                    connect(i, (i + 1) % 4, projected);
+                    connect(i + 4, ((i + 1) % 4) + 4, projected);
+                    connect(i, i + 4, projected);
+                }
+        }
+            if(points.Length == 2)
             {
-                connect(i, (i + 1) % 4, projected, g);
-                connect(i + 4, ((i + 1) % 4) + 4, projected, g);
-                connect(i, i + 4, projected, g);
-            }
+                connect(0, 1, projected);
 
-            // angle += 0.03f;
+            }
         }
         Vector3 matmul(float[,] matrix, Vector3 point)
         {
@@ -554,14 +589,11 @@ namespace collisioncode
             newPoint.Z = (point.X * matrix[0, 2]) + (point.Y * matrix[1, 2]) + (point.Z * matrix[2, 2]);
             return newPoint;
         }
-        void connect(int i, int j, Vector3[] points, Graphics g)
+        void connect(int i, int j, Vector3[] points)
         {
             Vector3 a = points[i];
             Vector3 b = points[j];
-            // strokeWeight(1);
-            // stroke(255);
-            //g.DrawLine(new Pen(Color.Black, 1), screenscale * (a.X + 500f), screenscale * (a.Y + 500f), screenscale * (b.X + 500f), screenscale * (b.Y + 500f));
-            drawShp(g,new PointF[] {new PointF(a.X,a.Y), new PointF(b.X, b.Y) },Color.Black,3);
+            drawShp(new PointF[] {new PointF(a.X,a.Y), new PointF(b.X, b.Y) },Color.Black,3);
         }
 
         #endregion
@@ -729,6 +761,8 @@ namespace collisioncode
 
                 temprX = (mouseX - mouseDX);
                 temprY = (mouseY - mouseDY);
+
+               
 
             }
             else
