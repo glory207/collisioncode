@@ -1,5 +1,7 @@
 using Microsoft.VisualBasic.Devices;
+using System.Numerics;
 using System.Reflection;
+using System.Security.Cryptography.Pkcs;
 using System.Windows.Forms;
 
 namespace collisioncode
@@ -65,6 +67,11 @@ namespace collisioncode
         float screenzoomV;
         float screenoffsetX = 0;
         float screenoffsetY = 0;
+        
+        float Rx = 0.2f;
+        float Ry = 0;
+        float Rz = 0;
+        float dis = 0;
         #endregion
 
         //============START=AND=LOGIC========
@@ -119,10 +126,11 @@ namespace collisioncode
             for (int i = 0; i < block.Count; i++)
             {
 
-                drawObj(g, block[i].x, block[i].y, block[i].sx, block[i].sy, block[i].color);
-
+               // drawObj(g, block[i].x, block[i].y, block[i].sx, block[i].sy, block[i].color);
+                SetVectors(g, Makepoint(block[i].x, block[i].y, block[i].sx, block[i].sy, 250f));
             }
-            drawObj(g, player.x, player.y, player.sx, player.sy, player.color);
+            // drawObj(g, player.x, player.y, player.sx, player.sy, player.color);
+            SetVectors(g, Makepoint(player.x, player.y, player.sx, player.sy, 100f));
 
 
             if (mouserD || mouseD)
@@ -146,7 +154,6 @@ namespace collisioncode
             #endregion
 
             MovePlayer();
-           
             pictureBox1.Image = bmp;
             
         }
@@ -440,6 +447,123 @@ namespace collisioncode
 
             }
         }
+        #endregion
+        //===========3D================
+        #region
+
+        Vector3[] Makepoint(float px, float py, float pw, float ph, float depth)
+        {
+            px *= 0.001f;
+            py *= 0.001f;
+            pw *= 0.0005f;
+            ph *= 0.0005f;
+         depth *= 0.0005f;
+
+            Vector3[] madePointes = new Vector3[8]
+            {
+                new Vector3(px - pw, py - ph,dis -depth),
+                new Vector3(px + pw, py - ph,dis -depth),
+                new Vector3(px + pw, py + ph,dis -depth),
+                new Vector3(px - pw, py + ph,dis -depth),
+
+                new Vector3(px - pw, py - ph,dis + depth),
+                new Vector3(px + pw, py - ph,dis + depth),
+                new Vector3(px + pw, py + ph,dis + depth),
+                new Vector3(px - pw, py + ph,dis + depth)
+
+            };
+
+            Vector3[] points = new Vector3[8] {
+         new Vector3(-1.5f, -0.5f, -0.5f),
+         new Vector3(0.5f, -0.5f, -0.5f),
+         new Vector3(0.5f, 0.5f, -0.5f),
+         new Vector3(-1.5f, 0.5f, -0.5f),
+
+         new Vector3(-1.5f, -0.5f, 0.5f),
+         new Vector3(0.5f, -0.5f, 0.5f),
+         new Vector3(0.5f, 0.5f, 0.5f),
+         new Vector3(-1.5f, 0.5f, 0.5f) };
+            return madePointes;
+        }
+        void SetVectors(Graphics g, Vector3[] points)
+        {
+            float[,] rotationZ = new float[,] {
+             {MathF.Cos(Rz), -MathF.Sin(Rz), 0},
+              {MathF.Sin(Rz), MathF.Cos(Rz), 0},
+              {0, 0, 1},
+            };
+
+            float[,] rotationX = new float[,] {
+              {1, 0, 0},
+              {0, MathF.Cos(Rx), -MathF.Sin(Rx)},
+              {0, MathF.Sin(Rx), MathF.Cos(Rx)},
+            };
+
+            float[,] rotationY = new float[,] {
+              { MathF.Cos(Ry), 0, MathF.Sin(Ry)},
+              {0, 1, 0},
+              {-MathF.Sin(Ry), 0, MathF.Cos(Ry)},
+            };
+
+            Vector3[] projected = new Vector3[points.Length];
+
+            for (int i = 0; i < points.Length; i++)
+            {
+                Vector3 rotated = matmul(rotationY, points[i]);
+                rotated = matmul(rotationX, rotated);
+                rotated = matmul(rotationZ, rotated);
+                float distance = 2;
+                float z = 1 / (distance - rotated.Z);
+                float[,] projection = new float[,] {
+                  { z, 0, 0},
+                  {0, z, 0},
+                  {0, 0, 0},
+                };
+                Vector3 projected2d = matmul(projection, rotated);
+
+                projected2d *= (2000);
+                projected[i] = projected2d;
+                //point(projected2d.x, projected2d.y);
+            }
+
+          //  for (int i = 0; i < projected.Length; i++)
+          //  {
+          //      //   stroke(255);
+          //      //   strokeWeight(16);
+          //      //   noFill();
+          //      Vector3 v = projected[i];
+          //      // point(v.x, v.y);
+          //      g.FillEllipse(new SolidBrush(Color.RebeccaPurple), screenscale * (v.X + 500f), screenscale * (v.Y + 500f), 5, 5);
+          //  }
+
+            // Connecting
+            for (int i = 0; i < 4; i++)
+            {
+                connect(i, (i + 1) % 4, projected, g);
+                connect(i + 4, ((i + 1) % 4) + 4, projected, g);
+                connect(i, i + 4, projected, g);
+            }
+
+            // angle += 0.03f;
+        }
+        Vector3 matmul(float[,] matrix, Vector3 point)
+        {
+            Vector3 newPoint;
+            newPoint.X = (point.X * matrix[0, 0]) + (point.Y * matrix[1, 0]) + (point.Z * matrix[2, 0]);
+            newPoint.Y = (point.X * matrix[0, 1]) + (point.Y * matrix[1, 1]) + (point.Z * matrix[2, 1]);
+            newPoint.Z = (point.X * matrix[0, 2]) + (point.Y * matrix[1, 2]) + (point.Z * matrix[2, 2]);
+            return newPoint;
+        }
+        void connect(int i, int j, Vector3[] points, Graphics g)
+        {
+            Vector3 a = points[i];
+            Vector3 b = points[j];
+            // strokeWeight(1);
+            // stroke(255);
+            //g.DrawLine(new Pen(Color.Black, 1), screenscale * (a.X + 500f), screenscale * (a.Y + 500f), screenscale * (b.X + 500f), screenscale * (b.Y + 500f));
+            drawShp(g,new PointF[] {new PointF(a.X,a.Y), new PointF(b.X, b.Y) },Color.Black,3);
+        }
+
         #endregion
 
         //==========INPUTS==================
