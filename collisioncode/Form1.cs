@@ -25,21 +25,31 @@ namespace collisioncode
         public class Block
         {
             public float x { get; set; }
-
-
             public float y { get; set; }
+            public float z { get; set; }
             public float sx { get; set; }
             public float sy { get; set; }
+            public float sz { get; set; }
             public Color color { get; set; }
+        }
+        public class triangle
+        {
+            public float p1 { get; set; }
+            public float p2 { get; set; }
+            public float p3 { get; set; }
+            public float pa { get; set; }
         }
         public class Player
         {
             public float x { get; set; }
             public float y { get; set; }
+            public float z { get; set; }
             public float vx { get; set; }
             public float vy { get; set; }
+            public float vz { get; set; }
             public float mx { get; set; }
             public float my { get; set; }
+            public float mz { get; set; }
             public float sx { get; set; }
             public float scrx { get; set; }
             public float scry { get; set; }
@@ -47,7 +57,7 @@ namespace collisioncode
             public Color color { get; set; }
             public bool grounged { get; set; }
         }
-        public Player player = new Player() {x = 500,y = 200,sx = 100,sy = 250, color = Color.Yellow, grounged = false };
+        public Player player = new Player() {x = 0,y = 0,z = 0,sx = 100,sy = 250, color = Color.Yellow, grounged = false };
         public List<Block> block = new List<Block>();
        public List<Circle> circle = new List<Circle>();
         Random rng = new Random();
@@ -58,6 +68,7 @@ namespace collisioncode
         bool mouserD;
         bool keyfD;
         bool inpU, inpD, inpL, inpR;
+        bool inpArrU, inpArrD, inpArrL, inpArrR;
         float temprX;
         float temprY;
         float screenscale;
@@ -65,11 +76,11 @@ namespace collisioncode
         float screenscaley;
         float screenzoom = 2500f;
         float screenzoomV;
-        float screenoffsetX = 0;
-        float screenoffsetY = 0;
-        
-        float Rx = 0.1f;
-        float Ry = -0.1f;
+        float screenoffsetX = 1000;
+        float screenoffsetY = 1000;
+        Vector3 spaceOffset = new Vector3();
+        float Rx = 0.5f;
+        float Ry = 0f;
         float Rz = 0;
         float dis = 0;
         Graphics g;
@@ -81,13 +92,15 @@ namespace collisioncode
         {
             InitializeComponent();
             this.pictureBox1.MouseWheel += MouseScrole;
-         //   Cursor.Hide();
+            Cursor.Hide();
            
             Block tempC = new Block();
             tempC.y = 900;
             tempC.x = 500;
+            tempC.z = 0;
             tempC.sx = 1050;
             tempC.sy = 100;
+            tempC.sz = 600;
 
             tempC.color = Color.Brown;
 
@@ -103,7 +116,7 @@ namespace collisioncode
             screenscaley = bmp.Height / 1000f;
            
             g = Graphics.FromImage(bmp);
-            g.FillRectangle(new SolidBrush(Color.Gray), 0, 0, screenscalex * 1000, screenscaley * 1000);
+            g.FillRectangle(new SolidBrush(Color.DarkGray), 0, 0, screenscalex * 1000, screenscaley * 1000);
             #region
             for (int i = 0; i < circle.Count; i++)
             {
@@ -115,57 +128,31 @@ namespace collisioncode
             circle.RemoveAll(j => j.health < 1);
             for (int i = 0; i < circle.Count; i++)
             {
-                #region
-               // drawCir( circle[i].x, circle[i].y, circle[i].radi, circle[i].color);
-                SetVectors( Makepoint(circle[i].x, circle[i].y, circle[i].radi, circle[i].radi, circle[i].radi));
+               
+                SetVectors( Makepoint(circle[i].x, circle[i].y,0, circle[i].radi, circle[i].radi, circle[i].radi),Color.Blue);
 
-                #endregion
             }
 
 
             for (int i = 0; i < block.Count; i++)
             {
-
-               // drawObj(g, block[i].x, block[i].y, block[i].sx, block[i].sy, block[i].color);
-                SetVectors( Makepoint(block[i].x, block[i].y, block[i].sx, block[i].sy, player.sx + 50));
+                SetVectors( Makepoint(block[i].x, block[i].y,0, block[i].sx, block[i].sy, block[i].sz), block[i].color);
             }
-            // drawObj(g, player.x, player.y, player.sx, player.sy, player.color);
-            SetVectors( Makepoint(player.x, player.y, player.sx, player.sy, player.sx));
+            SetVectors( Makepoint(player.x, player.y,player.z, player.sx, player.sy, player.sx),player.color);
 
 
             if (mouserD || mouseD)
             {
-                // drawShp( new PointF[] { new PointF(player.x, player.y - (player.sy / 2f)), new PointF((player.x - temprX), (player.y - (player.sy / 2f) - temprY)) }, Color.Black, 3);
                 PointF[] points = new PointF[] { new PointF(player.x, player.y - (player.sy / 2f)), new PointF(player.x, player.y - (player.sy / 2f)), new PointF((player.x - temprX), (player.y - (player.sy / 2f) - temprY)), new PointF((player.x - temprX), (player.y - (player.sy / 2f) - temprY)) };
-                SetVectors( Makepoint2(points, 5,0));
-
-                drawCir( player.x - temprX, player.y - (player.sy / 2f) - temprY, 5, Color.BlueViolet);
+                SetVectors( Makepoint2(points, 5,0),Color.Gray);
             }
             if (keyfD)
             {
-                PointF[] points = new PointF[] { new PointF { X = mouseX - screenoffsetX, Y = mouseY - screenoffsetY }, new PointF { X = mouseX - screenoffsetX, Y = mouseDY - screenoffsetY }, new PointF { X = mouseDX - screenoffsetX, Y = mouseDY - screenoffsetY }, new PointF { X = mouseDX - screenoffsetX, Y = mouseY - screenoffsetY } };
-                // drawShp( points, Color.Black, 3);
-                // SetVectors(g, Makepoint2(points,20,0));
-                SetVectors(Makepoint2(points, player.sx + 50, 0));
-
-
-                Block tempC = new Block();
-                    tempC.y = ((mouseY + mouseDY) / 2f) - screenoffsetY;
-                    tempC.x = ((mouseX + mouseDX) / 2f) - screenoffsetX;
-                    tempC.sx = MathF.Abs(temprX);
-                    if (tempC.sx < 100) { tempC.sx = 100; }
-                    tempC.sy = MathF.Abs(temprY);
-                    if (tempC.sy < 100) { tempC.sy = 100; }
-
-                  //  SetVectors(Makepoint(tempC.x, tempC.y, tempC.sx, tempC.sy, player.sx + 50));
-
-                
-                drawCir( mouseDX - screenoffsetX, mouseDY - screenoffsetY, 5, Color.BlueViolet);
-                drawCir( mouseX - screenoffsetX, mouseY - screenoffsetY, 5, Color.BlueViolet);
-                drawCir( mouseX - screenoffsetX, mouseDY - screenoffsetY, 5, Color.BlueViolet);
-                drawCir( mouseDX - screenoffsetX, mouseY - screenoffsetY, 5, Color.BlueViolet);
+              PointF[] points = new PointF[] { new PointF { X = mouseX - screenoffsetX + spaceOffset.X, Y = mouseY - screenoffsetY + spaceOffset.Y }, new PointF { X = mouseX - screenoffsetX + spaceOffset.X, Y = mouseDY - screenoffsetY + spaceOffset.Y }, new PointF { X = mouseDX - screenoffsetX + spaceOffset.X, Y = mouseDY - screenoffsetY + spaceOffset.Y }, new PointF { X = mouseDX - screenoffsetX + spaceOffset.X , Y = mouseY - screenoffsetY + spaceOffset.Y } };
+              SetVectors(Makepoint2(points, 600, 0),Color.Gray);
             }
-            drawCir( mouseDX - screenoffsetX, mouseDY - screenoffsetY, 5, Color.BlueViolet);
+           // drawCir( mouseDX - screenoffsetX, mouseDY - screenoffsetY, 5, Color.BlueViolet);
+            SetVectors(Makepoint(mouseDX - screenoffsetX + spaceOffset.X, mouseDY - screenoffsetY + spaceOffset.Y,0, 50, 50, 50), Color.Gray);
 
             #endregion
 
@@ -175,6 +162,7 @@ namespace collisioncode
         }
         private void UpdateTic(object sender, EventArgs e)
         {
+
             Inputs();
             Gooo();
 
@@ -199,66 +187,43 @@ namespace collisioncode
         {
             
             player.vx += player.mx;
+            player.vz += player.mz;
             player.vy += player.my * 2;
             player.vx = Math.Clamp(player.vx,-40, 40);
+            player.vz = Math.Clamp(player.vz,-40, 40);
             player.vy = Math.Clamp(player.vy,-40, 40);
             player.x += player.vx;
+            player.z += player.vz;
             player.y += player.vy;
             player.scrx = player.x + screenoffsetX;
             player.scry = player.y + screenoffsetY;
-            //  screenoffsetX = (screenscalex -screenscaley) * 1000;
+
+            if(spaceOffset.X > ( player.x))
+            {
+                 spaceOffset.X += 0.03f * (( player.x)-spaceOffset.X);
+
+            }
+            if (spaceOffset.X < ( player.x))
+               {
+                   spaceOffset.X += 0.03f * ((player.x)- spaceOffset.X);
+            }
+            if(spaceOffset.Y > ( player.y))
+            {
+                 spaceOffset.Y += 0.03f * (( player.y)-spaceOffset.Y);
+
+            }
+            if (spaceOffset.Y < (player.y))
+               {
+                   spaceOffset.Y += 0.03f * ((player.y)- spaceOffset.Y);
+            } 
             
-       //   if(player.scrx < (screenzoom*0.5f))
-       //   {
-       //      screenoffsetX += 0.05f * ((screenzoom * 0.5f) - player.scrx);
-       //   }
-       //   if(player.scrx > (screenzoom * 0.5f))
-       //   {
-       //       screenoffsetX += 0.05f * ((screenzoom * 0.5f) - player.scrx);
-       //   } 
-       //   if(player.scry < (screenzoom * 0.5f))
-       //   {
-       //       screenoffsetY += 0.05f * ((screenzoom * 0.5f) - player.scry);
-       //   }
-       //   if(player.scry > (screenzoom * 0.5f))
-       //   {
-       //       screenoffsetY += 0.05f * ((screenzoom * 0.5f) - player.scry);
-       //   }
-            // if (player.grounged)
             {
                 player.vx *= 0.955f;
                 player.vy *= 0.99f;
+                player.vz *= 0.955f;
 
             }
             player.vy += 1f;
-
-
-            label1.Text = screenscalex.ToString();
-            label2.Text = screenscaley.ToString();
-            label3.Text = (screenscalex- screenscaley).ToString();
-           // label2.Text = temprY.ToString();
-            #region
-       //    if (player.y > 1000 + (player.sy / 2f))
-            {
-        //        player.y = -(player.sy / 2) + 10;
-                //player.vy *= -1 + bounce;
-            }
-       //    if (player.y < -(player.sy / 2f))
-       //    {
-       //        player.y = 1000 + (player.sy / 2f) - 10;
-       //        // player.vy *= -1 + bounce;
-       //    }
-          //  if (player.x > 1000 + (player.sx / 2f))
-          //  {
-          //      player.x = -(player.sx / 2f) + 10;
-          //      //  player.vx *= -1 + bounce;
-          //  }
-          //  if (player.x < -(player.sx / 2f))
-          //  {
-          //      player.x = 1000 + (player.sx / 2f) - 10;
-          //      // player.vx *= -1 + bounce;
-          //  }
-            #endregion
 
             player.grounged = false;
             for (int t = 0; t < block.Count; t++)
@@ -345,33 +310,6 @@ namespace collisioncode
                 }
             }
             float bounce = 0f;
-            #region
-
-        //   if (circle[i].y > 1000 - circle[i].radi)
-        //   {
-        //       circle[i].health--;
-        //       circle[i].y = 1000 - circle[i].radi;
-        //       circle[i].vy *= -1 + bounce;
-        //   }
-        //   if (circle[i].y < circle[i].radi)
-        //   {
-        //       circle[i].health--;
-        //       circle[i].y = circle[i].radi;
-        //       circle[i].vy *= -1 + bounce;
-        //   }
-          //  if (circle[i].x > 1000 - circle[i].radi)
-          //  {
-          //      circle[i].health--;
-          //      circle[i].x = 1000 - circle[i].radi;
-          //      circle[i].vx *= -1 + bounce;
-          //  }
-          //  if (circle[i].x < 0 + circle[i].radi)
-          //  {
-          //      circle[i].health--;
-          //      circle[i].x = 0 + circle[i].radi;
-          //      circle[i].vx *= -1 + bounce;
-          //  }
-            #endregion
 
             for (int t = 0; t < block.Count; t++)
             {
@@ -432,19 +370,9 @@ namespace collisioncode
 
         //===========DRAWING================
         #region
-        void drawCir(float x,float y,float r, Color c)
+        void drawShp(Vector3[] points1, Color color,int thick)
         {
-            g.FillEllipse(new SolidBrush(c),screenscale *( x - (r)) +(screenoffsetX * screenscale),screenscale *( y - (r)) + (screenoffsetY * screenscale), screenscale *( r * 2f) , screenscale *( r * 2f));
-            g.DrawEllipse(new Pen(Color.Black, screenscale * 3),screenscale *( x - (r)) + (screenoffsetX * screenscale),( screenscale * ( y - (r))) + (screenoffsetY * screenscale), screenscale *( r * 2f),screenscale *( r * 2f));
-        }
-        void drawObj( float x, float y, float sx, float sy, Color color)
-        {
-            g.FillRectangle(new SolidBrush(color), screenscale * (x - (0.5f * sx)) + (screenoffsetX * screenscale), (screenscale * (y - (0.5f * sy))) + (screenoffsetY * screenscale), screenscale * sx, screenscale * sy);
-            g.DrawRectangle(new Pen(Color.Black, screenscale * 3), screenscale * ( x - (0.5f * sx)) + (screenoffsetX * screenscale),( screenscale * ( y - (0.5f * sy))) + (screenoffsetY * screenscale), screenscale * sx, screenscale * sy);
-        }
-        void drawShp(PointF[] points1, Color color,int thick)
-        {
-            
+            List<PointF> points1f = new List<PointF>();
             for (int i = 0; i < points1.Length; i++)
             {
                 points1[i].X *= screenscale;
@@ -452,53 +380,80 @@ namespace collisioncode
                 
                 points1[i].Y *= screenscale;
                 points1[i].Y += (screenoffsetY * screenscale);
-
+                points1f.Add(new PointF(points1[i].X, points1[i].Y));
             }
+            
             if (thick == 0)
             {
-                g.FillPolygon(new SolidBrush(color), points1);
+               // g.FillPolygon(new SolidBrush(color), points1f.ToArray());
             }
+            else
             {
-                g.DrawPolygon(new Pen(color, screenscale * thick), points1);
+                 
+           g.FillPolygon(new SolidBrush(color),new PointF[] { points1f[0], points1f[1], points1f[2] });
+           g.FillPolygon(new SolidBrush(color),new PointF[] { points1f[0], points1f[2], points1f[3] });
+           g.FillPolygon(new SolidBrush(color),new PointF[] { points1f[5], points1f[4], points1f[7] });
+           g.FillPolygon(new SolidBrush(color),new PointF[] { points1f[5], points1f[7], points1f[6] });
+           g.FillPolygon(new SolidBrush(color),new PointF[] { points1f[4], points1f[1], points1f[0] });
+           g.FillPolygon(new SolidBrush(color),new PointF[] { points1f[4], points1f[5], points1f[1] });
+           g.FillPolygon(new SolidBrush(color),new PointF[] { points1f[3], points1f[2], points1f[6] });
+           g.FillPolygon(new SolidBrush(color),new PointF[] { points1f[6], points1f[7], points1f[3] });
+           g.FillPolygon(new SolidBrush(color),new PointF[] { points1f[1], points1f[5], points1f[6] });
+           g.FillPolygon(new SolidBrush(color),new PointF[] { points1f[1], points1f[6], points1f[2] });
+           g.FillPolygon(new SolidBrush(color),new PointF[] { points1f[4], points1f[0], points1f[3] });
+           g.FillPolygon(new SolidBrush(color),new PointF[] { points1f[4], points1f[3], points1f[7] });
+              
+                 
+           g.DrawPolygon(new Pen(Color.Black,1),new PointF[] { points1f[0], points1f[1], points1f[2] });;
+           g.DrawPolygon(new Pen(Color.Black,1),new PointF[] { points1f[0], points1f[2], points1f[3] });;
+           g.DrawPolygon(new Pen(Color.Black,1),new PointF[] { points1f[5], points1f[4], points1f[7] });;
+           g.DrawPolygon(new Pen(Color.Black,1),new PointF[] { points1f[5], points1f[7], points1f[6] });;
+           g.DrawPolygon(new Pen(Color.Black,1),new PointF[] { points1f[4], points1f[1], points1f[0] });;
+           g.DrawPolygon(new Pen(Color.Black,1),new PointF[] { points1f[4], points1f[5], points1f[1] });;
+           g.DrawPolygon(new Pen(Color.Black,1),new PointF[] { points1f[3], points1f[2], points1f[6] });;
+           g.DrawPolygon(new Pen(Color.Black,1),new PointF[] { points1f[6], points1f[7], points1f[3] });;
+           g.DrawPolygon(new Pen(Color.Black,1),new PointF[] { points1f[1], points1f[5], points1f[6] });;
+           g.DrawPolygon(new Pen(Color.Black,1),new PointF[] { points1f[1], points1f[6], points1f[2] });;
+           g.DrawPolygon(new Pen(Color.Black,1),new PointF[] { points1f[4], points1f[0], points1f[3] });;
+           g.DrawPolygon(new Pen(Color.Black,1),new PointF[] { points1f[4], points1f[3], points1f[7] }); ;
+
+
+                // for (int i = 0; i < points1.Length; i++)
+                // {
+                //      g.FillRectangle(new SolidBrush(Color.Black), points1f[i].X, points1f[i].Y,5,5);
+                //
+                // }
 
             }
+            
         }
         #endregion
         //===========3D================
         #region
 
-        Vector3[] Makepoint(float px, float py, float pw, float ph, float depth)
+        Vector3[] Makepoint(float px, float py,float pz, float pw, float ph, float depth)
         {
             px *= 0.001f;
             py *= 0.001f;
+            pz *= 0.001f;
             pw *= 0.0005f;
             ph *= 0.0005f;
          depth *= 0.0005f;
 
             Vector3[] madePointes = new Vector3[8]
             {
-                new Vector3(px - pw, py - ph,-depth),
-                new Vector3(px + pw, py - ph,-depth),
-                new Vector3(px + pw, py + ph,-depth),
-                new Vector3(px - pw, py + ph,-depth),
+                new Vector3(px - pw, py - ph,pz+depth),
+                new Vector3(px + pw, py - ph,pz+depth),
+                new Vector3(px + pw, py + ph,pz+depth),
+                new Vector3(px - pw, py + ph,pz+depth),
 
-                new Vector3(px - pw, py - ph, depth),
-                new Vector3(px + pw, py - ph, depth),
-                new Vector3(px + pw, py + ph, depth),
-                new Vector3(px - pw, py + ph, depth)
+                new Vector3(px - pw, py - ph,pz - depth),
+                new Vector3(px + pw, py - ph,pz - depth),
+                new Vector3(px + pw, py + ph,pz - depth),
+                new Vector3(px - pw, py + ph,pz - depth)
 
             };
 
-            Vector3[] points = new Vector3[8] {
-         new Vector3(-1.5f, -0.5f, -0.5f),
-         new Vector3(0.5f, -0.5f, -0.5f),
-         new Vector3(0.5f, 0.5f, -0.5f),
-         new Vector3(-1.5f, 0.5f, -0.5f),
-
-         new Vector3(-1.5f, -0.5f, 0.5f),
-         new Vector3(0.5f, -0.5f, 0.5f),
-         new Vector3(0.5f, 0.5f, 0.5f),
-         new Vector3(-1.5f, 0.5f, 0.5f) };
             return madePointes;
         }
         
@@ -525,7 +480,7 @@ namespace collisioncode
             }
             return madePointes.ToArray();
         }
-        void SetVectors( Vector3[] points)
+        void SetVectors( Vector3[] points,Color objCol)
         {
             float[,] rotationZ = new float[,] {
              {MathF.Cos(Rz), -MathF.Sin(Rz), 0},
@@ -549,7 +504,8 @@ namespace collisioncode
 
             for (int i = 0; i < points.Length; i++)
             {
-                Vector3 rotated = matmul(rotationY, points[i]);
+                Vector3 rotated = matadd(rotationY, points[i]);
+                rotated = matmul(rotationY, rotated);
                 rotated = matmul(rotationX, rotated);
                 rotated = matmul(rotationZ, rotated);
                 float distance = 2;
@@ -567,19 +523,11 @@ namespace collisioncode
             }
 
             // Connecting
-            if (points.Length == 8) { 
-                for (int i = 0; i < 4; i++)
-                {
-                    connect(i, (i + 1) % 4, projected);
-                    connect(i + 4, ((i + 1) % 4) + 4, projected);
-                    connect(i, i + 4, projected);
-                }
-        }
-            if(points.Length == 2)
-            {
-                connect(0, 1, projected);
+           // Vector3 a = points[i];
+           // Vector3 b = points[j];
+            drawShp(projected, objCol,3);
 
-            }
+
         }
         Vector3 matmul(float[,] matrix, Vector3 point)
         {
@@ -589,11 +537,20 @@ namespace collisioncode
             newPoint.Z = (point.X * matrix[0, 2]) + (point.Y * matrix[1, 2]) + (point.Z * matrix[2, 2]);
             return newPoint;
         }
+
+        Vector3 matadd(float[,] matrix, Vector3 point)
+        {
+            Vector3 newPoint;
+            newPoint.X = point.X - (spaceOffset.X/1000f);
+            newPoint.Y = point.Y - (spaceOffset.Y/1000f);
+            newPoint.Z = point.Z - (spaceOffset.Z/1000f);
+            return newPoint;
+        }
         void connect(int i, int j, Vector3[] points)
         {
-            Vector3 a = points[i];
-            Vector3 b = points[j];
-            drawShp(new PointF[] {new PointF(a.X,a.Y), new PointF(b.X, b.Y) },Color.Black,3);
+       //    Vector3 a = points[i];
+       //    Vector3 b = points[j];
+       //    drawShp(new PointF[] {new PointF(a.X,a.Y), new PointF(b.X, b.Y) },Color.Black,3);
         }
 
         #endregion
@@ -659,7 +616,7 @@ namespace collisioncode
         }
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            if ((e.KeyCode == Keys.Space || e.KeyCode == Keys.W) && player.grounged) { player.vy = -40; }
+            if ((e.KeyCode == Keys.Space) && player.grounged) { player.vy = -40; }
             if (e.KeyCode == Keys.E)
             {
                 circle.Clear();
@@ -684,8 +641,13 @@ namespace collisioncode
 
             if (e.KeyCode == Keys.D) { inpR = true; }
             if (e.KeyCode == Keys.A) { inpL = true; }
-          //  if (e.KeyCode == Keys.W) { inpU = true; }
+            if (e.KeyCode == Keys.W) { inpU = true; }
             if (e.KeyCode == Keys.S) { inpD = true; }
+
+            if (e.KeyCode == Keys.Right) { inpArrR = true; }
+            if (e.KeyCode == Keys.Left) { inpArrL = true; }
+            if (e.KeyCode == Keys.Up) { inpArrU = true; }
+            if (e.KeyCode == Keys.Down) { inpArrD = true; }
             if (e.KeyCode == Keys.F)
             { 
             keyfD = true;
@@ -696,12 +658,13 @@ namespace collisioncode
             if (e.KeyCode == Keys.F) 
             {
                 Block tempC = new Block();
-                tempC.y =  ((mouseY + mouseDY) / 2f ) - screenoffsetY;
-                tempC.x =  ((mouseX + mouseDX) / 2f ) - screenoffsetX;
+                tempC.y =  ((mouseY + mouseDY) / 2f ) - screenoffsetY + spaceOffset.Y;
+                tempC.x =  ((mouseX + mouseDX) / 2f ) - screenoffsetX + spaceOffset.X;
                 tempC.sx = MathF.Abs(temprX );
                 if (tempC.sx < 100) { tempC.sx = 100; }
                 tempC.sy = MathF.Abs( temprY );
                 if (tempC.sy < 100) { tempC.sy = 100; }
+                tempC.sz = 600;
 
                 tempC.color = Color.Brown;
                 #region
@@ -719,8 +682,13 @@ namespace collisioncode
             }
             if (e.KeyCode == Keys.D) { inpR = false; }
             if (e.KeyCode == Keys.A) { inpL = false; }
-          //  if (e.KeyCode == Keys.W) { inpU = false; }
+            if (e.KeyCode == Keys.W) { inpU = false; }
             if (e.KeyCode == Keys.S) { inpD = false; }
+
+            if (e.KeyCode == Keys.Right){ inpArrR = false; }
+            if (e.KeyCode == Keys.Left) { inpArrL = false; }
+            if (e.KeyCode == Keys.Up)   { inpArrU = false; }
+            if (e.KeyCode == Keys.Down) { inpArrD = false; }
         }
         private void Inputs()
         {
@@ -729,18 +697,13 @@ namespace collisioncode
             screenzoom += screenzoomV;
             screenzoom = Math.Clamp(screenzoom, 1000, 5000);
 
-            // screenzoom = Math.Clamp(screenzoom, 1500, 2000);
-
+           
             if (!mouserD && !mouseD && !keyfD)
             {
-               // mouseX = (relativePoint.X - screenoffsetX) / screenscale;
-               // mouseY = (relativePoint.Y - screenoffsetY) / screenscale;
                 mouseX = (relativePoint.X ) / screenscale;
                 mouseY = (relativePoint.Y ) / screenscale;
             }
 
-           // mouseDX = (relativePoint.X - screenoffsetX) / screenscale;
-           // mouseDY = (relativePoint.Y - screenoffsetY) / screenscale;
             mouseDX = (relativePoint.X ) / screenscale;
             mouseDY = (relativePoint.Y ) / screenscale;
 
@@ -786,16 +749,47 @@ namespace collisioncode
 
             if ((inpU && inpD) || ((!inpU && !inpD)))
             {
-                player.my = 0;
+                player.mz = 0;
             }
             else if (inpU)
             {
-                player.my = -1;
+                player.mz = -1;
             }
             else if (inpD)
             {
-                player.my = 1;
+                player.mz = 1;
             }
+
+
+            if ((inpArrL && inpArrR) || ((!inpArrL && !inpArrR)))
+            {
+                Ry += 0;
+            }
+            else if (inpArrL)
+            {
+                Ry += 0.01f;
+            }
+            else if (inpArrR)
+            {
+                Ry -= 0.01f;
+            }
+            if ((inpArrU && inpArrD) || ((!inpArrU && !inpArrD)))
+            {
+                Rx += 0;
+            }
+            else if (inpArrU)
+            {
+                Rx -= 0.01f;
+            }
+            else if (inpArrD)
+            {
+                Rx += 0.01f;
+            }
+            Rx =  Math.Clamp(Rx,-MathF.PI/2, MathF.PI / 2);
+            Ry =  Math.Clamp(Ry,-MathF.PI/2, MathF.PI / 2);
+            label1.Text = Ry.ToString();
+            label2.Text = Rx.ToString();
+            label3.Text = player.z.ToString();
         }
         #endregion
     }
