@@ -178,7 +178,10 @@ namespace collisioncode
                 drawShp(new PointF[] { triangle[i].p1, triangle[i].p2, triangle[i].p3 }, triangle[i].color,1);
             }
             pictureBox1.Image = bmp;
-            
+            if(block.Count > 50)
+            {
+                block.RemoveAt(0);
+            }
         }
         private void UpdateTic(object sender, EventArgs e)
         {
@@ -218,21 +221,30 @@ namespace collisioncode
 
             if(spaceOffset.X > ( player.x))
             {
-                 spaceOffset.X += 0.03f * (( player.x)-spaceOffset.X);
+                 spaceOffset.X += 0.1f * (( player.x)-spaceOffset.X);
 
             }
             if (spaceOffset.X < ( player.x))
                {
-                   spaceOffset.X += 0.03f * ((player.x)- spaceOffset.X);
+                   spaceOffset.X += 0.1f * ((player.x)- spaceOffset.X);
             }
             if(spaceOffset.Y > ( player.y))
             {
-                 spaceOffset.Y += 0.03f * (( player.y)-spaceOffset.Y);
+                 spaceOffset.Y += 0.1f * (( player.y)-spaceOffset.Y);
 
             }
             if (spaceOffset.Y < (player.y))
                {
-                   spaceOffset.Y += 0.03f * ((player.y)- spaceOffset.Y);
+                   spaceOffset.Y += 0.1f * ((player.y)- spaceOffset.Y);
+            } 
+            if(spaceOffset.Z > ( player.z))
+            {
+                 spaceOffset.Z += 0.1f * (( player.z)-spaceOffset.Z);
+
+            }
+            if (spaceOffset.Z < (player.z))
+               {
+                   spaceOffset.Z += 0.1f * ((player.z)- spaceOffset.Z);
             } 
             
             {
@@ -648,7 +660,32 @@ namespace collisioncode
         }
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            if ((e.KeyCode == Keys.Space) && player.grounged) { player.vy = -40; }
+            if ((e.KeyCode == Keys.Space) && !player.grounged) 
+            {
+                Block tempC = new Block();
+                tempC.y = player.y + (player.sy * 0.5f) + 90;
+                tempC.x = player.x;
+                tempC.z = player.z;
+                tempC.sx = 1000;
+                
+                tempC.sy = 100;
+               
+                tempC.sz = 1000;
+
+                tempC.color = Color.Brown;
+#region
+
+                if (!(((player.y + (player.sy / 2f) >= tempC.y - (tempC.sy * 0.5f)) && ((player.y - (player.sy / 2f) <= tempC.y + (tempC.sy * 0.5f)))) && ((player.x + (player.sx / 2f) >= tempC.x - (tempC.sx * 0.5f)) && ((player.x - (player.sx / 2f) <= tempC.x + (tempC.sx * 0.5f))))))
+                {
+                    block.Add(tempC);
+
+                }
+
+#endregion
+
+            }
+            else if(e.KeyCode == Keys.Space) { player.vy = -40; }
+
             if (e.KeyCode == Keys.E)
             {
                 circle.Clear();
@@ -699,7 +736,7 @@ namespace collisioncode
                 tempC.sz = 600;
 
                 tempC.color = Color.Brown;
-                #region
+#region
 
                 if (!(((player.y + (player.sy / 2f) >= tempC.y - (tempC.sy * 0.5f)) && ((player.y - (player.sy / 2f) <= tempC.y + (tempC.sy * 0.5f)))) && ((player.x + (player.sx / 2f) >= tempC.x - (tempC.sx * 0.5f)) && ((player.x - (player.sx / 2f) <= tempC.x + (tempC.sx * 0.5f))))))
                 {
@@ -707,7 +744,7 @@ namespace collisioncode
 
                 }
 
-                #endregion
+#endregion
 
 
                 keyfD = false;
@@ -766,30 +803,32 @@ namespace collisioncode
                 temprY = 0;
             }
 
+            float tempMx = 0;
+            float tempMz = 0;
             if ((inpL && inpR) || ((!inpL && !inpR)))
             {
-                player.mx = 0;
+                tempMx = 0;
             }
             else if (inpL)
             {
-                player.mx = -1;
+                tempMx = -1;
             }
             else if (inpR)
             {
-                player.mx = 1;
+                tempMx = 1;
             }
 
             if ((inpU && inpD) || ((!inpU && !inpD)))
             {
-                player.mz = 0;
+                tempMz = 0;
             }
             else if (inpU)
             {
-                player.mz = -1;
+                tempMz = -1;
             }
             else if (inpD)
             {
-                player.mz = 1;
+                tempMz = 1;
             }
 
 
@@ -799,11 +838,11 @@ namespace collisioncode
             }
             else if (inpArrL)
             {
-                Ry += 0.01f;
+                Ry += 0.03f;
             }
             else if (inpArrR)
             {
-                Ry -= 0.01f;
+                Ry -= 0.03f;
             }
             if ((inpArrU && inpArrD) || ((!inpArrU && !inpArrD)))
             {
@@ -811,18 +850,20 @@ namespace collisioncode
             }
             else if (inpArrU)
             {
-                Rx -= 0.01f;
+                Rx -= 0.03f;
             }
             else if (inpArrD)
             {
-                Rx += 0.01f;
+                Rx += 0.03f;
             }
-           // Rx =  Math.Clamp(Rx,-MathF.PI/2, MathF.PI / 2);
-           // Ry =  Math.Clamp(Ry,-MathF.PI/2, MathF.PI / 2);
-            label1.Text = distance.ToString();
-            label2.Text = screenzoomV.ToString();
-            label3.Text = player.z.ToString();
+
+            player.mx = (tempMx *MathF.Cos(-Ry)) - (tempMz *MathF.Sin(-Ry));
+            player.mz = (tempMz *MathF.Cos(-Ry)) + (tempMx *MathF.Sin(-Ry));
+
+
+            label1.Text = player.mz.ToString();
+            label2.Text = player.mx.ToString();
         }
-        #endregion
+#endregion
     }
 }
